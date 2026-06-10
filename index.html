@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Drawing Board</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #1e1e24;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .left-panel {
+            width: 300px;
+            background: #2b2b36;
+            padding: 20px;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3);
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+            border-right: 1px solid #3d3d4f;
+            z-index: 10;
+        }
+
+        .right-panel {
+            flex: 1;
+            position: relative;
+            background: #22222b;
+            transition: background 0.3s, background-image 0.3s;
+        }
+
+        .bg-dark-board {
+            background: #22222b !important;
+            background-image: none !important;
+        }
+
+        .bg-white-board {
+            background: #ffffff !important;
+            background-image: none !important;
+        }
+
+        .bg-cream-board {
+            background: #fdf5e6 !important;
+            background-image: none !important;
+        }
+
+        .bg-grid-board {
+            background: #ffffff !important;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.08) 1px, transparent 1px) !important;
+            background-size: 20px 20px !important;
+        }
+
+        h2 {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: #b5ead7;
+            text-align: center;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 8px rgba(181, 234, 215, 0.2);
+        }
+
+        video {
+            width: 100%;
+            border-radius: 10px;
+            transform: scaleX(-1);
+            border: 1px solid #3d3d4f;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            cursor: crosshair;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 5px;
+        }
+
+        .circle {
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.1s;
+        }
+
+        .circle:hover,
+        .circle.active {
+            transform: scale(1.1);
+            border-color: #ffffff;
+        }
+
+        .bg-option {
+            height: 35px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 2px solid #3d3d4f;
+            transition: 0.2s;
+        }
+
+        .bg-option:hover,
+        .bg-option.active {
+            transform: scale(1.05);
+            border-color: #b5ead7;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            box-sizing: border-box;
+            cursor: pointer;
+            background: #b5ead7;
+            color: #1e1e24;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #9bd6c1;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+            accent-color: #b5ead7;
+        }
+
+        .status {
+            font-size: 15px;
+            font-weight: bold;
+            color: #ffffff;
+            background: #3d3d4f;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .info {
+            background: #3d3d4f;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #d1d1e0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="left-panel">
+            <h2>Digital Drawing Board</h2>
+            <video id="video" autoplay playsinline></video>
+
+            <div>
+                <div style="font-size:14px; font-weight:bold; color:#d1d1e0; margin-bottom: 5px;">1. Board Background
+                </div>
+                <div class="grid" id="boardBgOptions">
+                    <div class="bg-option active" style="background:#22222b;" data-bg="bg-dark-board"
+                        title="Dark Board"></div>
+                    <div class="bg-option" style="background:#ffffff;" data-bg="bg-white-board" title="White Paper">
+                    </div>
+                    <div class="bg-option" style="background:#fdf5e6;" data-bg="bg-cream-board" title="Cream Vintage">
+                    </div>
+                    <div class="bg-option"
+                        style="background:#ffffff; background-image: radial-gradient(#ccc 1px, transparent 1px); background-size: 10px 10px;"
+                        data-bg="bg-grid-board" title="Grid Sheet"></div>
+                </div>
+            </div>
+
+            <div>
+                <div style="font-size:14px; font-weight:bold; color:#d1d1e0; margin-bottom: 5px;">2. Choose Pastel Color
+                </div>
+                <div class="grid" id="palette">
+                    <div class="circle active" style="background:#FFB7B2;" data-color="#FFB7B2"></div>
+                    <div class="circle" style="background:#FFDAC1;" data-color="#FFDAC1"></div>
+                    <div class="circle" style="background:#E2F0CB;" data-color="#E2F0CB"></div>
+                    <div class="circle" style="background:#B5EAD7;" data-color="#B5EAD7"></div>
+                    <div class="circle" style="background:#C7CEEA;" data-color="#C7CEEA"></div>
+                    <div class="circle" style="background:#FFC6FF;" data-color="#FFC6FF"></div>
+                    <div class="circle" style="background:#BDB2FF;" data-color="#BDB2FF"></div>
+                    <div class="circle" style="background:#9BF6FF;" data-color="#9BF6FF"></div>
+                </div>
+            </div>
+
+            <div>
+                <label style="font-size:14px; font-weight:bold; color:#ffffff;">3. Brush Size Control</label>
+                <input type="range" min="2" max="30" value="8" id="brushSize">
+            </div>
+
+            <button onclick="clearCanvas()">Clear Canvas</button>
+            <div class="status" id="status">Initializing...</div>
+
+            <div class="info">
+                <strong style="color: #b5ead7;">Webcam Controls:</strong><br>
+                ☝️ Index Finger = Smooth Draw<br>
+                👍 Thumb = Eraser (Matches Board)<br>
+                🖐 Open Palm = Clear Canvas<br>
+                <hr style="border:0; border-top:1px solid #575770; margin:8px 0;">
+                <strong style="color: #b5ead7;">Mouse Controls:</strong><br>
+                鼠标 🖱️ Click & Drag = Draw Line
+            </div>
+        </div>
+
+        <div class="right-panel bg-dark-board" id="boardTarget">
+            <canvas id="drawCanvas"></canvas>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+
+    <script>
+        const video = document.getElementById("video"), canvas = document.getElementById("drawCanvas"), ctx = canvas.getContext("2d");
+        const boardTarget = document.getElementById("boardTarget");
+
+        // Dynamically compute size variations to fit the screen properly
+        function resizeCanvas() {
+            canvas.width = window.innerWidth - 300;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        let activeColor = "#FFB7B2";
+        let isDrawingWithMouse = false;
+        let currentBoardClass = "bg-dark-board";
+
+        // Smoothing settings for webcam drawing
+        let smoothX = null;
+        let smoothY = null;
+        const easingFactor = 0.25; // Lower values = smoother lines but minor delay; Higher values = faster but sharper lines
+
+        // Background Controls
+        document.querySelectorAll('#boardBgOptions .bg-option').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelector('#boardBgOptions .bg-option.active').classList.remove('active');
+                item.classList.add('active');
+                const newBg = item.getAttribute('data-bg');
+                boardTarget.classList.remove(currentBoardClass);
+                boardTarget.classList.add(newBg);
+                currentBoardClass = newBg;
+            });
+        });
+
+        // Color Palette Click Logic
+        document.querySelectorAll('#palette .circle').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelector('#palette .circle.active').classList.remove('active');
+                item.classList.add('active');
+                activeColor = item.getAttribute('data-color');
+            });
+        });
+
+        function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+        const isUp = (tip, pip, landmarks) => landmarks[tip].y < landmarks[pip].y;
+
+        function getEraserColor() {
+            if (currentBoardClass === "bg-white-board" || currentBoardClass === "bg-grid-board") return "#FFFFFF";
+            if (currentBoardClass === "bg-cream-board") return "#fdf5e6";
+            return "#22222b";
+        }
+
+        // Standard Universal Line Processor
+        function drawLine(currentX, currentY, prevX, prevY, color, width) {
+            if (prevX === null || prevY === null) return;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+
+            ctx.beginPath();
+            ctx.moveTo(prevX, prevY);
+            ctx.lineTo(currentX, currentY);
+            ctx.stroke();
+        }
+
+        // ==========================================
+        // MOUSE MANAGEMENT LOGIC
+        // ==========================================
+        let mousePrevX = null, mousePrevY = null;
+
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawingWithMouse = true;
+            document.getElementById("status").innerHTML = "🖱️ Mouse Active";
+            const size = document.getElementById("brushSize").value;
+            const rect = canvas.getBoundingClientRect();
+            const mX = e.clientX - rect.left;
+            const mY = e.clientY - rect.top;
+
+            drawLine(mX, mY, mX, mY, activeColor, size);
+            mousePrevX = mX; mousePrevY = mY;
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDrawingWithMouse) return;
+            const size = document.getElementById("brushSize").value;
+            const rect = canvas.getBoundingClientRect();
+            const mX = e.clientX - rect.left;
+            const mY = e.clientY - rect.top;
+
+            drawLine(mX, mY, mousePrevX, mousePrevY, activeColor, size);
+            mousePrevX = mX; mousePrevY = mY;
+        });
+
+        canvas.addEventListener('mouseup', () => { isDrawingWithMouse = false; mousePrevX = mousePrevY = null; });
+        canvas.addEventListener('mouseleave', () => { isDrawingWithMouse = false; mousePrevX = mousePrevY = null; });
+
+        // ==========================================
+        // WEBCAM SMOOTH TRACKING LOGIC
+        // ==========================================
+        const hands = new Hands({ locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
+        hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.6, minTrackingConfidence: 0.6 });
+
+        let handPrevX = null, handPrevY = null;
+
+        hands.onResults(results => {
+            const status = document.getElementById("status");
+            if (isDrawingWithMouse) return;
+
+            if (!results.multiHandLandmarks.length) {
+                handPrevX = handPrevY = null;
+                smoothX = smoothY = null;
+                status.innerHTML = "Waiting for hand...";
+                return;
+            }
+
+            const landmarks = results.multiHandLandmarks[0];
+            const indexUp = isUp(8, 6, landmarks), middleUp = isUp(12, 10, landmarks);
+            const ringUp = isUp(16, 14, landmarks), pinkyUp = isUp(20, 18, landmarks);
+            const thumbUp = landmarks[4].x < landmarks[3].x;
+
+            // Target calculations
+            const rawX = (1 - landmarks[8].x) * canvas.width;
+            const rawY = landmarks[8].y * canvas.height;
+            const size = document.getElementById("brushSize").value;
+
+            // Apply Linear Interpolation Filtering to smooth out jittering values
+            if (smoothX === null || smoothY === null) {
+                smoothX = rawX;
+                smoothY = rawY;
+            } else {
+                smoothX = smoothX + (rawX - smoothX) * easingFactor;
+                smoothY = smoothY + (rawY - smoothY) * easingFactor;
+            }
+
+            /* PALM GESTURE -> WIPE CANVAS */
+            if (indexUp && middleUp && ringUp && pinkyUp) {
+                status.innerHTML = "🖐 Clear Canvas";
+                clearCanvas();
+                handPrevX = handPrevY = null;
+            }
+            /* THUMB GESTURE -> STABILIZED ERASER */
+            else if (thumbUp && !indexUp) {
+                status.innerHTML = "👍 Eraser Active";
+                drawLine(smoothX, smoothY, handPrevX, handPrevY, getEraserColor(), 45);
+                handPrevX = smoothX; handPrevY = smoothY;
+            }
+            /* INDEX FINGER GESTURE -> STABILIZED SMART DRAW */
+            else if (indexUp && !middleUp) {
+                status.innerHTML = "☝️ Hand Drawing Dynamically";
+                drawLine(smoothX, smoothY, handPrevX, handPrevY, activeColor, size);
+                handPrevX = smoothX; handPrevY = smoothY;
+            }
+            /* RESTING STATE */
+            else {
+                handPrevX = handPrevY = null;
+                status.innerHTML = "Tracking... Raise Index Finger.";
+            }
+        });
+
+        new Camera(video, { onFrame: async () => { await hands.send({ image: video }); }, width: 640, height: 480 }).start();
+    </script>
+</body>
+
+</html>
+
+```
